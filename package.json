@@ -1,0 +1,17 @@
+{
+  "name": "notifyme",
+  "version": "1.0.0",
+  "description": "send notifications [WhatsApp msgs] when people join voice channels on discord",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@dotenvx/dotenvx": "^0.24.0",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5"
+  }
+}
