@@ -34,32 +34,29 @@ client.on("ready", () => {
 client.on("voiceStateUpdate", (oldState, newState) => {
   try {
     
-    console.log(`OldState: ${JSON.stringify(oldState)}`);
-    console.log(`NewState: ${JSON.stringify(newState)}`);
-    
-    console.log(newState.guild.name);
-    console.log(oldState.guild.name);
-    
     if (newState.channel && newState.channel.members) {
       const connectedUsers = [newState.guild.name];
+      connectedUsers.push(newState.channel.name);
       
       newState.channel.members.forEach((member) => {
         connectedUsers.push(member.user.username);
       });
 
       if (connectedUsers) {
-        sendWhatsAppMessage(`${GetAllUserNames(connectedUsers)}`,  connectedUsers.at(0), connectedUsers.at(0)).then(r => {});
+        sendWhatsAppMessage(GetAllUserNames(connectedUsers),  GetServerName(connectedUsers), GetVoiceChannelName(connectedUsers)).then(r => {});
       }
     }
 
     if (oldState.channel && oldState.channel.members) {
       // User left (or moved). Not currently keeping track of separate voice channel names.
-      const connectedUsers = [oldState.guild.name];
+      const connectedUsers = [oldState.channel.name];
+      connectedUsers.push(newState.channel.name);
+      
       oldState.channel.members.forEach((member) => {
         connectedUsers.push(member.user.username);
       });
       if (connectedUsers) {
-        sendWhatsAppMessage(`${GetAllUserNames(connectedUsers)}`,  connectedUsers.at(0), connectedUsers.at(0)).then(r => {});
+        sendWhatsAppMessage(GetAllUserNames(connectedUsers),  GetServerName(connectedUsers), GetVoiceChannelName(connectedUsers)).then(r => {});
       }
     }
   } catch (err) {
@@ -68,9 +65,9 @@ client.on("voiceStateUpdate", (oldState, newState) => {
 });
 
 function GetAllUserNames(connectedUsers) {
-  // first element is Server name. Rest are users.
+  // first element is Server name. Second is voice channel name. Rest are users.
   let names = "";
-  for (let i = 1; i < connectedUsers.length; i++) {
+  for (let i = 2; i < connectedUsers.length; i++) {
     names += connectedUsers[i] + " ";
   }
   if (names.trim() === "") {
@@ -79,11 +76,23 @@ function GetAllUserNames(connectedUsers) {
   return names;
 }
 
+function GetServerName(connectedUsers) {
+  // first element is Server name. Second is voice channel name. Rest are users.
+  if(connectedUsers && connectedUsers.length > 0) {
+    return connectedUsers[0];
+  }
+  return "Unknown";
+}
 
-async function sendWhatsAppMessage(users, channelName, server) {
-  console.log(`Users: ${users}`);
-  console.log(`Channel Name: ${channelName}`);
-  console.log(`Server:  ${server}`);
+function GetVoiceChannelName(connectedUsers) {
+  // first element is Server name. Second is voice channel name. Rest are users.
+  if(connectedUsers && connectedUsers.length > 0) {
+    return connectedUsers[1];
+  }
+  return "Unknown";
+}
+
+async function sendWhatsAppMessage(users, server, channelName) {
 
   const timeStamp = new Date().toTimeString();
   const url = `https://graph.facebook.com/v22.0/${phoneNumberId}/messages`;
