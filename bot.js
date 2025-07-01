@@ -33,88 +33,42 @@ client.on("ready", () => {
 
 // TODO: Needs better name 
 let ShouldRunLogicOnOldState = true;
+
 client.on("voiceStateUpdate", (oldState, newState) => {
   try {
-
-    let newUsers = [];
+    
+    connectedUsers = [];
     
     if (newState.channel && newState.channel.members) {
 
+      connectedUsers.push(newState.guild.name);
+      connectedUsers.push(newState.channel.name);
       
-      newUsers.push(newState.guild.name);
-      newUsers.push(newState.channel.name);
-
-      // newState.channel.members.find(member => connectedUsers.find(connectedUserNames =>  {
-      //    
-      //  
-      // } ) )
       newState.channel.members.forEach((member) => {
-        // connectedUsers.push(member.user.username);
-       // console.log(member.user.username, member.user.displayName, member.user.displayAvatarURL);
-        /* 
-          start a new array to track
-          if available in newState then add to array
-            run standard check on Mic status, streaming?  sharing? / deafened ? 
-              add in braces if needed   
-            
-            once gone through all. could add things to do about the left over as they no longer here etc.
-            make new users the current connected users. send out message.
-            
-            // logic breaks if the Username and Channel name and voice Channel are the same.
-         
-        */
-        let currentMemberDebug = member;
-        let currentMemberUserNameDebug = member.user.username;
-        
-        // Checking for first time run. TODO: Make it look better
-        if(connectedUsers.length > 2) {
-          if (connectedUsers.find(userName => userName === member.user.username)) {
-            newUsers.push(FormatName(member));
-          }
-        }
-        else{
-          newUsers.push(FormatName(member));
-        }
+        connectedUsers.push(FormatName(member));
       });
 
-      connectedUsers = newUsers;
-      
-      if (connectedUsers) {
-        
-         
-        if(connectedUsers.length > 2) {
-          
-        }
-        
-        ShouldRunLogicOnOldState = false; // Why? 
-        sendWhatsAppMessage(GetAllUserNames(connectedUsers),  GetServerName(connectedUsers), GetVoiceChannelName(connectedUsers)).then(r => {});
-      }
+      ShouldRunLogicOnOldState = connectedUsers.length <= 2;
+    }
+    else{
+      // Nothing in new state so everybody has left voice chat. 
+      ShouldRunLogicOnOldState = true;
     }
 
     if(ShouldRunLogicOnOldState){
-    if (oldState.channel && oldState.channel.members) {
-      // User left (or moved).
-      // loop connectedUsers - if found in oldState 
-
-      newUsers.push(newState.guild.name);
-      newUsers.push(newState.channel.name);
-
-      if (connectedUsers.length > 2) {
-
-        connectedUsers.forEach(userName => {
-          if (oldState.channel.members.find(member => member.user.username !== UnFormatName(userName))) {
-            newUsers.push(userName);
-          }
-        })
-
-        connectedUsers = newUsers;
-      }
-    }
       
-      if (connectedUsers) {
-        sendWhatsAppMessage(GetAllUserNames(connectedUsers),  GetServerName(connectedUsers), GetVoiceChannelName(connectedUsers)).then(r => {});
+      if (oldState.channel && oldState.channel.members) {
+        // User left (or moved).
+        connectedUsers.push(oldState.guild.name);
+        connectedUsers.push(oldState.channel.name);
       }
     }
+
+    if (connectedUsers) {
+      
+      sendWhatsAppMessage(GetAllUserNames(connectedUsers),  GetServerName(connectedUsers), GetVoiceChannelName(connectedUsers)).then(r => {});
+    }
+    
     
   } catch (err) {
     console.log(err);
@@ -161,6 +115,14 @@ function FormatName(member){
   
   if(member.voice.selfDeaf){
     name += " (SelfDeaf)";
+  }
+  
+  if(member.voice.streaming){
+    name += " (Streaming)";
+  }
+  
+  if(member.voice.selfVideo){
+    name += " (Video)";
   }
   
   return name;
