@@ -61,6 +61,11 @@ client.on("voiceStateUpdate", (oldState, newState) => {
         // User left (or moved).
         connectedUsers.push(oldState.guild.name);
         connectedUsers.push(oldState.channel.name);
+
+
+        oldState.channel.members.forEach((member) => {
+          connectedUsers.push(FormatName(member));
+        });
       }
     }
 
@@ -127,28 +132,6 @@ function FormatName(member){
   
   return name;
   
-}
-
-function UnFormatName(member){
-
-  let name = member.user.username;
-
-  if(member.voice.selfMute){
-    name += " (Muted)";
-  }
-  else{
-    name += name.replace(" (Muted)", name)
-  }
-
-  if(member.voice.selfDeaf){
-    name += " (SelfDeaf)";
-  }
-  else{
-    name += name.replace(" (SelfDeaf)", name)
-  }
-
-  return name;
-
 }
 
 async function sendWhatsAppMessage(users, server, channelName) {
